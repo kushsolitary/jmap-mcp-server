@@ -3,17 +3,16 @@ const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio
 const { z } = require("zod");
 const { JamClient } = require("jmap-jam");
 
-// TODO: Replace with your Fastmail credentials
-const FASTMAIL_SESSION_URL = "https://api.fastmail.com/jmap/session";
-const FASTMAIL_TOKEN = "";
+const JMAP_SESSION_URL = process.env.JMAP_SESSION_URL || "";
+const JMAP_TOKEN = process.env.JMAP_TOKEN || "";
 
 const jam = new JamClient({
-  sessionUrl: FASTMAIL_SESSION_URL,
-  bearerToken: FASTMAIL_TOKEN,
+  sessionUrl: JMAP_SESSION_URL,
+  bearerToken: JMAP_TOKEN,
 });
 
 const server = new McpServer({
-  name: "Fastmail JMAP MCP",
+  name: "Generic JMAP MCP",
   version: "0.1.0"
 });
 
@@ -36,7 +35,7 @@ server.tool(
 
 // Tool: Fetch latest emails from a mailbox
 server.tool(
-  "fetch-latest-emails",
+  "fetch_latest_emails",
   {
     mailboxId: z.string(),
     limit: z.number().default(5)
