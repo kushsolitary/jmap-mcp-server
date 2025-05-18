@@ -4,7 +4,13 @@ const { z } = require("zod");
 const { JamClient } = require("jmap-jam");
 
 const JMAP_SESSION_URL = process.env.JMAP_SESSION_URL || "https://api.fastmail.com/jmap/session";
-const JMAP_TOKEN = process.env.JMAP_TOKEN || "";
+
+const args = process.argv.slice(2);
+let JMAP_TOKEN = process.env.JMAP_TOKEN || "";
+
+if (args.length > 0 && args[0]) {
+  JMAP_TOKEN = args[0];
+}
 
 const jam = new JamClient({
   sessionUrl: JMAP_SESSION_URL,
