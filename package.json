@@ -1,9 +1,9 @@
 {
   "name": "jmap-mcp",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Model Context Protocol server for interacting with JMAP services.",
   "license": "ISC",
-  "author": "",
+  "author": "Jahfer Husain",
   "type": "commonjs",
   "main": "index.js",
   "bin": {
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.4",
-    "jmap-jam": "^0.10.1"
+    "jmap-jam": "^0.10.1",
+    "zod": "^3.24.4"
   }
 }

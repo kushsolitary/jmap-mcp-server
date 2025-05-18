@@ -46,28 +46,141 @@ server.tool(
   "fetch_latest_emails",
   {
     mailboxId: z.string(),
-    limit: z.number().default(5)
+    limit: z.number().default(15),
+    excludeMailboxIds: z.array(z.string()).optional(),
+    receivedBefore: z.string().datetime().optional(), // Expect ISO 8601 date-time string
+    receivedAfter: z.string().datetime().optional(),  // Expect ISO 8601 date-time string
+    hasKeyword: z.string().optional(),
+    notKeyword: z.string().optional(),
+    hasAttachment: z.boolean().optional(),
+    searchText: z.string().optional(),
+    searchFrom: z.string().optional(),
+    searchTo: z.string().optional(),
+    searchCc: z.string().optional(),
+    searchBcc: z.string().optional(),
+    searchSubject: z.string().optional(),
+    searchBody: z.string().optional()
   },
-  async ({ mailboxId, limit }) => {
-    const session = await jam.session;
-    const accountId = session.primaryAccounts["urn:ietf:params:jmap:mail"];
-    const [{ ids }] = await jam.api.Email.query({
-      accountId,
-      filter: { inMailbox: mailboxId },
-      sort: [{ property: "receivedAt", isAscending: false }],
-      limit
-    });
-    const [emails] = await jam.api.Email.get({
-      accountId,
-      ids,
-      properties: ["id", "subject", "from", "receivedAt", "preview"]
-    });
-    return {
-      content: [{
-        type: "text",
-        text: JSON.stringify(emails, null, 2)
-      }]
-    };
+  async (inputs) => {
+    try {
+      const {
+        mailboxId,
+        limit,
+        excludeMailboxIds,
+        receivedBefore,
+        receivedAfter,
+        hasKeyword,
+        notKeyword,
+        hasAttachment,
+        searchText,
+        searchFrom,
+        searchTo,
+        searchCc,
+        searchBcc,
+        searchSubject,
+        searchBody
+      } = inputs;
+
+      const session = await jam.session;
+      const accountId = session.primaryAccounts["urn:ietf:params:jmap:mail"];
+
+      // Construct the filter object based on provided inputs
+      const filter = { inMailbox: mailboxId };
+      if (excludeMailboxIds && excludeMailboxIds.length > 0) {
+        filter.inMailboxOtherThan = excludeMailboxIds;
+      }
+      if (receivedBefore) {
+        filter.before = receivedBefore;
+      }
+      if (receivedAfter) {
+        filter.after = receivedAfter;
+      }
+      if (hasKeyword) {
+        filter.hasKeyword = hasKeyword;
+      }
+      if (notKeyword) {
+        filter.notKeyword = notKeyword;
+      }
+      if (typeof hasAttachment === 'boolean') {
+        filter.hasAttachment = hasAttachment;
+      }
+      if (searchText) {
+        filter.text = searchText;
+      }
+      if (searchFrom) {
+        filter.from = searchFrom;
+      }
+      if (searchTo) {
+        filter.to = searchTo;
+      }
+      if (searchCc) {
+        filter.cc = searchCc;
+      }
+      if (searchBcc) {
+        filter.bcc = searchBcc;
+      }
+      if (searchSubject) {
+        filter.subject = searchSubject;
+      }
+      if (searchBody) {
+        filter.body = searchBody;
+      }
+
+      const [results] = await jam.requestMany(b => {
+        // 1. Query for the latest thread exemplar email IDs
+        const queryEmailsDraft = b.Email.query({
+          accountId,
+          filter: filter, // Use the constructed filter object
+          sort: [{ property: "receivedAt", isAscending: false }],
+          position: 0,
+          collapseThreads: true, // Collapse to get thread exemplars
+          limit: limit // Limit the number of threads
+        });
+
+        // 2. Fetch the threadId of each of those exemplar messages
+        const getThreadIdsDraft = b.Email.get({
+          accountId,
+          ids: queryEmailsDraft.$ref('/ids'), // Use $ref on the draft variable
+          properties: ["threadId"]
+        });
+
+        // 3. Get the emailIds of the messages in those threads
+        const getThreadEmailsDraft = b.Thread.get({
+          accountId,
+          ids: getThreadIdsDraft.$ref('/list/*/threadId'), // Use $ref on the draft variable
+        });
+
+        // 4. Finally we get the data for all those emails
+        const getEmailDetailsDraft = b.Email.get({
+          accountId,
+          ids: getThreadEmailsDraft.$ref('/list/*/emailIds'), // Use $ref on the draft variable
+          properties: ["id", "subject", "from", "receivedAt", "preview", "mailboxIds"]
+        });
+
+        return {
+          queryEmails: queryEmailsDraft,
+          getThreadIds: getThreadIdsDraft,
+          getThreadEmails: getThreadEmailsDraft,
+          getEmailDetails: getEmailDetailsDraft
+        };
+      });
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(results.getEmailDetails.list, null, 2)
+        }]
+      };
+    } catch (error) {
+      console.error("Error in fetch_latest_emails:", error);
+      return {
+        content: [{
+          type: "text",
+          text: `Error fetching emails: ${JSON.stringify(error) || 'Unknown error'}`
+        }],
+        isError: true
+      };
+    }
   }
 );
 
@@ -97,17 +210,14 @@ server.tool(
     }
 
     const email = emails.list[0];
-    //console.log("Raw email object from JMAP:", JSON.stringify(email, null, 2)); // Remove or keep for debugging
 
     let bodyContent = 'No body content found.';
 
-    // Function to download and get content from a body part blob
     const downloadBodyPartContent = async (bodyPart) => {
       if (!bodyPart || !bodyPart.blobId) {
         return null;
       }
       try {
-        // Use jmap-jam's downloadBlob method
         const response = await jam.downloadBlob({
           accountId,
           blobId: bodyPart.blobId,
