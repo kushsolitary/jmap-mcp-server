@@ -20,7 +20,7 @@ const jam = new JamClient({
 });
 
 const server = new McpServer({
-  name: "Generic JMAP MCP",
+  name: "JMAP MCP",
   version: "0.1.0"
 });
 
