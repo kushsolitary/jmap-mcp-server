@@ -3,7 +3,7 @@ const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio
 const { z } = require("zod");
 const { JamClient } = require("jmap-jam");
 
-const JMAP_SESSION_URL = process.env.JMAP_SESSION_URL || "";
+const JMAP_SESSION_URL = process.env.JMAP_SESSION_URL || "https://api.fastmail.com/jmap/session";
 const JMAP_TOKEN = process.env.JMAP_TOKEN || "";
 
 const jam = new JamClient({
