@@ -43,7 +43,7 @@ server.tool(
 
 // Tool: Fetch latest emails from a mailbox
 server.tool(
-  "fetch_latest_emails",
+  "search_emails",
   {
     mailboxId: z.string(),
     limit: z.number().default(15),
