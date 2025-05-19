@@ -2,7 +2,7 @@
 
 Read emails via MCP!
 
-<a href="https://glama.ai/mcp/servers/@jahfer/dav-mcp-server">
+<a href="https://glama.ai/mcp/servers/@jahfer/jmap-mcp-server">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@jahfer/jmap-mcp-server/badge" alt="JMAP MCP server" />
 </a>
 
