@@ -30,8 +30,8 @@ To use JMAP-MCP, you need to configure it as an `mcpServer` in your MCP configur
 {
   "mcpServers": {
     "emails": {
-      "command": "/path/to/node",
-      "args": ["/path/to/jmap-mcp/index.js"],
+      "command": "npx",
+      "args": ["-y", "@jahfer/jmap-mcp-server"],
       "env": {
         "JMAP_SESSION_URL": "https://api.fastmail.com/jmap/session", // for example
         "JMAP_TOKEN": "<your-jmap-token>"
@@ -40,12 +40,6 @@ To use JMAP-MCP, you need to configure it as an `mcpServer` in your MCP configur
   }
 }
 ```
-
-- `"emails"`: This is the name you assign to this server within your MCP configuration.
-- `"command"`: The path to your Node.js executable.
-- `"args"`: An array containing the path to the `index.js` file of this project.
-
-Replace `/path/to/node` and `/path/to/jmap-mcp/index.js` with the actual paths on your system.
 
 ## Usage
 

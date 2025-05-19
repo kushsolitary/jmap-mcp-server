@@ -1,5 +1,5 @@
 {
-  "name": "jmap-mcp",
+  "name": "@jahfer/jmap-mcp-server",
   "version": "1.0.2",
   "description": "A Model Context Protocol server for interacting with JMAP services.",
   "license": "ISC",
