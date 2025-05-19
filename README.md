@@ -2,6 +2,10 @@
 
 Read emails via MCP!
 
+<a href="https://glama.ai/mcp/servers/@jahfer/dav-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@jahfer/jmap-mcp-server/badge" alt="JMAP MCP server" />
+</a>
+
 ## Introduction
 
 JMAP-MCP is a connector designed to interact with a JMAP (JSON Mail Access Protocol) server, allowing you to read emails via the Model Context Protocol (MCP). This project specifically demonstrates integration with a Fastmail JMAP server.
