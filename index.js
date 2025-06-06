@@ -24,10 +24,48 @@ const server = new McpServer({
   version: "0.1.0"
 });
 
+/*
+JMAP MCP Server Tools Documentation
+==================================
+
+Available Tools:
+
+1. get_mailboxes
+   - Description: Retrieves all mailboxes for the authenticated JMAP account.
+   - Input: None
+   - Output: JSON array of mailbox objects.
+
+2. search_emails
+   - Description: Searches for emails in a specified mailbox, with optional filters and search parameters. Returns thread exemplars and their details.
+   - Input (object):
+       - mailboxId (string, required): The mailbox to search in.
+       - limit (number, optional, default 15): Max number of threads/emails to return.
+       - excludeMailboxIds (array of strings, optional): Mailboxes to exclude.
+       - receivedBefore (string, ISO 8601, optional): Only emails received before this date.
+       - receivedAfter (string, ISO 8601, optional): Only emails received after this date.
+       - hasKeyword (string, optional): Only emails with this keyword.
+       - notKeyword (string, optional): Only emails without this keyword.
+       - hasAttachment (boolean, optional): Only emails with/without attachments.
+       - searchText (string, optional): Full-text search.
+       - searchFrom, searchTo, searchCc, searchBcc (string, optional): Filter by sender/recipient.
+       - searchSubject (string, optional): Filter by subject.
+       - searchBody (string, optional): Filter by body content.
+   - Output: JSON array of email objects (id, subject, from, receivedAt, preview, mailboxIds).
+
+3. get_email_content
+   - Description: Retrieves the full content of an email by its ID, including subject, sender, recipients, date, and body (text or HTML).
+   - Input (object):
+       - emailId (string, required): The ID of the email to fetch.
+   - Output: Text content with subject, from, to, date, and body.
+*/
+
 // Tool: Get mailboxes
 server.tool(
   "get_mailboxes",
-  z.object({}), // No input parameters needed for this tool
+  {
+    description: "Retrieves all mailboxes for the authenticated JMAP account.",
+    input: z.object({}), // No input parameters needed for this tool
+  },
   async () => {
     const session = await jam.session;
     const accountId = session.primaryAccounts["urn:ietf:params:jmap:mail"];
@@ -45,21 +83,24 @@ server.tool(
 server.tool(
   "search_emails",
   {
-    mailboxId: z.string(),
-    limit: z.number().default(15),
-    excludeMailboxIds: z.array(z.string()).optional(),
-    receivedBefore: z.string().datetime().optional(), // Expect ISO 8601 date-time string
-    receivedAfter: z.string().datetime().optional(),  // Expect ISO 8601 date-time string
-    hasKeyword: z.string().optional(),
-    notKeyword: z.string().optional(),
-    hasAttachment: z.boolean().optional(),
-    searchText: z.string().optional(),
-    searchFrom: z.string().optional(),
-    searchTo: z.string().optional(),
-    searchCc: z.string().optional(),
-    searchBcc: z.string().optional(),
-    searchSubject: z.string().optional(),
-    searchBody: z.string().optional()
+    description: "Searches for emails in a specified mailbox, with optional filters and search parameters. Returns thread exemplars and their details.",
+    input: {
+      mailboxId: z.string().describe("The mailbox to search in."),
+      limit: z.number().default(15).describe("Max number of threads/emails to return."),
+      excludeMailboxIds: z.array(z.string()).optional().describe("Mailboxes to exclude."),
+      receivedBefore: z.string().datetime().optional().describe("Only emails received before this date (ISO 8601)."),
+      receivedAfter: z.string().datetime().optional().describe("Only emails received after this date (ISO 8601)."),
+      hasKeyword: z.string().optional().describe("Only emails with this keyword."),
+      notKeyword: z.string().optional().describe("Only emails without this keyword."),
+      hasAttachment: z.boolean().optional().describe("Only emails with/without attachments."),
+      searchText: z.string().optional().describe("Full-text search."),
+      searchFrom: z.string().optional().describe("Filter by sender."),
+      searchTo: z.string().optional().describe("Filter by recipient (To)."),
+      searchCc: z.string().optional().describe("Filter by recipient (Cc)."),
+      searchBcc: z.string().optional().describe("Filter by recipient (Bcc)."),
+      searchSubject: z.string().optional().describe("Filter by subject."),
+      searchBody: z.string().optional().describe("Filter by body content.")
+    }
   },
   async (inputs) => {
     try {
@@ -188,7 +229,10 @@ server.tool(
 server.tool(
   "get_email_content",
   {
-    emailId: z.string()
+    description: "Retrieves the full content of an email by its ID, including subject, sender, recipients, date, and body (text or HTML).",
+    input: {
+      emailId: z.string().describe("The ID of the email to fetch.")
+    }
   },
   async ({ emailId }) => {
     const session = await jam.session;
