@@ -64,7 +64,7 @@ server.tool(
   "get_mailboxes",
   {
     description: "Retrieves all mailboxes for the authenticated JMAP account.",
-    input: z.object({}), // No input parameters needed for this tool
+    inputSchema: z.object({}), // No input parameters needed for this tool
   },
   async () => {
     const session = await jam.session;
@@ -84,7 +84,7 @@ server.tool(
   "search_emails",
   {
     description: "Searches for emails in a specified mailbox, with optional filters and search parameters. Returns thread exemplars and their details.",
-    input: {
+    inputSchema: z.object({
       mailboxId: z.string().describe("The mailbox to search in."),
       limit: z.number().default(15).describe("Max number of threads/emails to return."),
       excludeMailboxIds: z.array(z.string()).optional().describe("Mailboxes to exclude."),
@@ -100,7 +100,7 @@ server.tool(
       searchBcc: z.string().optional().describe("Filter by recipient (Bcc)."),
       searchSubject: z.string().optional().describe("Filter by subject."),
       searchBody: z.string().optional().describe("Filter by body content.")
-    }
+    })
   },
   async (inputs) => {
     try {
@@ -230,9 +230,9 @@ server.tool(
   "get_email_content",
   {
     description: "Retrieves the full content of an email by its ID, including subject, sender, recipients, date, and body (text or HTML).",
-    input: {
+    inputSchema: z.object({
       emailId: z.string().describe("The ID of the email to fetch.")
-    }
+    })
   },
   async ({ emailId }) => {
     const session = await jam.session;
