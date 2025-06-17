@@ -4,7 +4,7 @@
   "description": "A Model Context Protocol server for interacting with JMAP services.",
   "license": "ISC",
   "author": "Jahfer Husain",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "bin": {
     "jmap-mcp": "./index.js"
